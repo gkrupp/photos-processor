@@ -14,7 +14,6 @@
   "dependencies": {
     "dotenv": "^8.2.0",
     "exifr": "^6.0.0",
-    "probe-image-size": "^6.0.0",
     "sharp": "^0.27.1",
     "xxhashjs": "^0.2.2"
   },

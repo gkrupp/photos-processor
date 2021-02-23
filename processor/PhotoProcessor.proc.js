@@ -25,11 +25,14 @@ module.exports = async function PhotoProcessor ({ data }) {
     ret.data.dimensions = await sharp(path)
       .metadata()
       .then((metadata) => {
+        const orientation = metadata.orientation
+        const width = orientation < 5 ? metadata.width : metadata.height
+        const height = orientation < 5 ? metadata.height : metadata.width
         return {
-          width: metadata.width,
-          height: metadata.height,
-          mpx: metadata.width * metadata.height / 1E6,
-          aspectRatio: metadata.width / metadata.height,
+          width: width,
+          height: height,
+          mpx: width * height / 1E6,
+          aspectRatio: width / height,
           channels: metadata.channels,
           density: metadata.density || null,
           hasAlpha: metadata.hasAlpha
