@@ -1,9 +1,6 @@
 require('dotenv')
-const path = require('path')
 
 module.exports = {
-  commonPath: process.env.COMMON_PATH,
-  common: (file) => path.resolve(process.cwd(), process.env.COMMON_PATH, file),
   processor: {
     version: Number(process.env.PROCESSOR_VERSION),
     startup: Boolean(process.env.PROCESSOR_STARTUP),

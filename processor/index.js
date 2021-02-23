@@ -1,7 +1,7 @@
 const pathlib = require('path')
 const config = require('../config')
 
-const Photo = require(config.common('./models/photo'))
+const Photo = require('../../photos-common/models/photo')
 
 let Q = null
 let HOST = '*'

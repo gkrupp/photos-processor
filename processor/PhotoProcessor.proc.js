@@ -4,7 +4,7 @@ const pathlib = require('path')
 const exifr = require('exifr')
 const xxh = require('xxhashjs')
 const sharp = require('sharp')
-const config = require(pathlib.join(__dirname, '../config'))
+const config = require('../config')
 
 const resizers = require('./resizers')
 
