@@ -20,6 +20,10 @@ async function init () {
     processes: config.proc.processes
   })
 
+  // Process start signal
+  process.send = process.send || (() => {})
+  process.send('ready')
+
   // (Startup) ProcessMissing and VersionUpgrade
   if (config.processor.startup) {
     await Processor.processMissing()
