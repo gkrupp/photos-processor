@@ -25,7 +25,7 @@ module.exports = async function PhotoProcessor ({ data }) {
     ret.data.dimensions = await sharp(path)
       .metadata()
       .then((metadata) => {
-        const orientation = metadata.orientation
+        const orientation = metadata.orientation || 1
         const width = orientation < 5 ? metadata.width : metadata.height
         const height = orientation < 5 ? metadata.height : metadata.width
         return {
