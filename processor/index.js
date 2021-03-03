@@ -64,7 +64,7 @@ async function processMissing () {
 }
 
 async function versionUpgrade (requiredVersion) {
-  const query = { '_processingFlags.version': { $lt: requiredVersion }, ...Photo.canProcess }
+  const query = { '_processingFlags.version': { $not: { $gte: requiredVersion } }, ...Photo.canProcess }
   const photos = await photoDB.find(query, Photo.projections.processor)
   await Promise.all(photos.map(photo => Q.add(HOST, photo)))
   await photoDB._processingFlags({ processing: true }, query)
