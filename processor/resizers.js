@@ -6,33 +6,44 @@ const defaultInputOptions = {
 
 module.exports = {
 
-  icon: async (inputPath, outputPath) =>
+  /*
+  'i32': async (inputPath, outputPath) =>
     sharp(inputPath, defaultInputOptions)
       .rotate()
       .resize({ width: 32, height: 32, fit: 'cover' })
       .sharpen()
       .jpeg({ quality: 80, progressive: true })
       .toFile(outputPath),
+  */
 
-  largeicon: async (inputPath, outputPath) =>
+  /*
+  'i80': async (inputPath, outputPath) =>
     sharp(inputPath, defaultInputOptions)
       .rotate()
       .resize({ width: 80, height: 80, fit: 'cover' })
       .sharpen()
       .jpeg({ quality: 80, progressive: true })
       .toFile(outputPath),
+  */
 
-  tile: async (inputPath, outputPath) =>
+  h260: async (inputPath, outputPath) =>
     sharp(inputPath, defaultInputOptions)
       .rotate()
       .resize({ width: 350, height: 260, fit: 'outside' })
       .jpeg({ quality: 80, progressive: true })
       .toFile(outputPath),
 
-  preview: async (inputPath, outputPath) =>
+  h340: async (inputPath, outputPath) =>
     sharp(inputPath, defaultInputOptions)
       .rotate()
-      .resize({ width: 1200, height: 900, fit: 'outside' })
+      .resize({ width: 450, height: 340, fit: 'outside' })
+      .jpeg({ quality: 80, progressive: true })
+      .toFile(outputPath),
+
+  h960: async (inputPath, outputPath) =>
+    sharp(inputPath, defaultInputOptions)
+      .rotate()
+      .resize({ width: 1280, height: 960, fit: 'outside' })
       .jpeg({ quality: 80, progressive: true })
       .toFile(outputPath)
 

@@ -71,6 +71,7 @@ module.exports = async function PhotoProcessor ({ data }) {
       return null
     })
 
+    // thumbnails
     ret.data.thumbnails = await (async () => {
       const thumbnails = {}
       for (const tnType in resizers) {
