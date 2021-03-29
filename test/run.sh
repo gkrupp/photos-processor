@@ -1,0 +1,1 @@
+NODE_ENV=test PROCESSOR_VERSION=0 node ./test/processor.js

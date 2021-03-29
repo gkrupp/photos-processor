@@ -7,8 +7,7 @@ module.exports = {
     requiredVersion: Number(process.env.PROCESSOR_REQUIRED_VERSION)
   },
   content: {
-    thumbDir: process.env.CONTENT_THUMB_DIR,
-    thumbTypes: process.env.CONTENT_THUMB_TYPES.split(',')
+    thumbDir: process.env.CONTENT_THUMB_DIR
   },
   proc: {
     host: process.env.PROC_HOST,
