@@ -11,4 +11,6 @@ processor({
     id: 0,
     path: './test/dogs.JPG'
   }
-}).then(console.log)
+}).then((meta) => {
+  console.log(meta.data)
+})
