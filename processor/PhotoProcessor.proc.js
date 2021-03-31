@@ -43,7 +43,33 @@ async function getJpegDimensions ({ data, errors }) {
 }
 
 async function getJpegExif ({ data }) {
-  return exifr.parse(data.path, true)
+  return exifr.parse(data.path, {
+    // Segments (JPEG APP Segment, PNG Chunks, HEIC Boxes, etc...)
+    tiff: true,
+    xmp: true,
+    icc: true,
+    iptc: true,
+    jfif: true, // (jpeg only)
+    ihdr: true, // (png only)
+    // Sub-blocks inside TIFF segment
+    ifd0: true, // aka image
+    ifd1: true, // aka thumbnail
+    exif: true,
+    gps: true,
+    interop: true,
+    // Other TIFF tags
+    makerNote: false,
+    userComment: false,
+    // Filters
+    skip: ['makerNote', 'userComment'],
+    // Formatters
+    translateKeys: true,
+    translateValues: true,
+    reviveValues: true,
+    sanitize: true,
+    mergeOutput: true,
+    silentErrors: true
+  })
 }
 
 async function getJpegColors ({ data, errors }) {
