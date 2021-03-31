@@ -17,7 +17,7 @@
     "dotenv": "^8.2.0",
     "exifr": "^6.2.0",
     "node-vibrant": "^3.2.1-alpha.1",
-    "sharp": "^0.27.2",
+    "sharp": "^0.28.0",
     "xxhashjs": "^0.2.2"
   },
   "devDependencies": {
