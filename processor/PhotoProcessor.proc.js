@@ -3,7 +3,7 @@ const fs = require('fs')
 const pathlib = require('path')
 const exifr = require('exifr')
 const colorconvert = require('color-convert')
-const colorthief = require('colorthief')
+const colorthief = require('color-thief-node')
 const vibrant = require('node-vibrant')
 const xxh = require('xxhashjs')
 const sharp = require('sharp')
@@ -48,7 +48,7 @@ async function getJpegExif ({ data }) {
 
 async function getJpegColors ({ data, errors }) {
   const rawpalettes = {
-    dominant: await colorthief.getPalette(data.path)
+    dominant: await colorthief.getPaletteFromURL(data.path, 10, 10)
       .catch(errorStacker('getJpegColors/palette', errors, data, [])),
     vibrant: await vibrant.from(data.path, {})
       .getPalette()
