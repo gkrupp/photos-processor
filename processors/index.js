@@ -25,6 +25,7 @@ async function handleCompleted (job, res) {
       processed: new Date()
     }
   })
+  passToML(job, res)
 }
 
 async function passToML (job, res) {
@@ -71,7 +72,6 @@ async function init ({ colls, queue, mlqueue, host = '*', processes = 1 }) {
   photoDB = new Photo(colls.photos)
 
   Q.on('completed', handleCompleted)
-  Q.on('completed', passToML)
   Q.on('drained', () => console.log('Q drained'))
 
   MLQ.on('completed', handleMLCompleted)
