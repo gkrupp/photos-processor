@@ -32,7 +32,7 @@ async function passToML (job, res) {
   const { id, path, mlproc = true } = job.data
   const tnType = 'h960'
   let dataPath = path
-  if (res.data.thumbnails && res.thumbnails[tnType]) {
+  if (res.data.thumbnails && res.data.thumbnails[tnType]) {
     dataPath = res.data.thumbnails[tnType].path || path
   }
   if (mlproc) {
