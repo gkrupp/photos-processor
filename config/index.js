@@ -4,7 +4,10 @@ module.exports = {
   processor: {
     version: Number(process.env.PROCESSOR_VERSION),
     startup: Boolean(process.env.PROCESSOR_STARTUP),
-    requiredVersion: Number(process.env.PROCESSOR_REQUIRED_VERSION)
+    requiredVersion: Number(process.env.PROCESSOR_REQUIRED_VERSION),
+    mlVersion: Number(process.env.MLPROCESSOR_VERSION),
+    mlStartup: Boolean(process.env.MLPROCESSOR_STARTUP),
+    mlRequiredVersion: Number(process.env.MLPROCESSOR_REQUIRED_VERSION)
   },
   content: {
     thumbDir: process.env.CONTENT_THUMB_DIR
@@ -17,7 +20,8 @@ module.exports = {
   },
   queues: {
     tracker: process.env.COMMON_Q_TRACKER,
-    processor: process.env.COMMON_Q_PROCESSOR
+    processor: process.env.COMMON_Q_PROCESSOR,
+    mlprocessor: process.env.COMMON_Q_MLPROCESSOR
   },
   redis: {
     host: process.env.RD_HOST,

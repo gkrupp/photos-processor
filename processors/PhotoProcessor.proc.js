@@ -2,12 +2,8 @@
 const fs = require('fs')
 const pathlib = require('path')
 const exifr = require('exifr')
-const colorconvert = require('color-convert')
-const colorthief = require('color-thief-node')
-const vibrant = require('node-vibrant')
 const xxh = require('xxhashjs')
 const sharp = require('sharp')
-const yolo9000 = require('../../photos-common/ml/yolo')
 const config = require('../config')
 
 const VERSION = config.processor.version
@@ -18,15 +14,6 @@ function errorStacker (ref, stack, details = {}, defret = null) {
     console.error(ref, err, details)
     stack.push([ref, err.message])
     return defret
-  }
-}
-
-function pickTnToProcess (result, fallback) {
-  const tnType = 'h960'
-  if (result.thumbnails && result.thumbnails[tnType]) {
-    return result.thumbnails[tnType].path || fallback
-  } else {
-    return fallback
   }
 }
 
@@ -124,12 +111,14 @@ async function getJpegThumbnails ({ data, errors }) {
     // meta
     thumbnails[tnType] = await sharp(tnPath)
       .metadata()
-      .then((metadata) => {
+      .then(async (metadata) => {
         return {
           path: tnPath,
           width: metadata.width,
           height: metadata.height,
-          size: metadata.size
+          size: await fs.promises.stat(tnPath)
+            .then((stat) => stat.size)
+            .catch(errorStacker('getJpegThumbnails/meta/stat/' + tnType, errors, data))
         }
       })
       .catch(errorStacker('getJpegThumbnails/meta/' + tnType, errors, data))
@@ -137,71 +126,16 @@ async function getJpegThumbnails ({ data, errors }) {
   return thumbnails
 }
 
-async function getJpegColors ({ data, result, errors }) {
-  const dataPath = pickTnToProcess(result, data.path)
-  const promiseResults = await Promise.all([
-    colorthief.getPaletteFromURL(dataPath, 10, 5)
-      .catch(errorStacker('getJpegColors/palette', errors, data, [])),
-    vibrant.from(dataPath, { quality: 5 })
-      .getPalette()
-      .then((palette) => {
-        const colors = ['Vibrant', 'DarkVibrant', 'LightVibrant', 'Muted', 'DarkMuted', 'LightMuted']
-        return colors.map((name) => palette[name].rgb)
-      })
-      .catch(errorStacker('getJpegColors/vibrant', errors, data, []))
-  ])
-  const rawpalettes = {
-    dominant: promiseResults[0],
-    vibrant: promiseResults[1]
-  }
-  return {
-    dominant: {
-      rgb: rawpalettes.dominant.map((raw) => raw.map(Math.round)),
-      lhc: rawpalettes.dominant.map(colorconvert.rgb.lch)
-    },
-    vibrant: {
-      rgb: rawpalettes.vibrant.map((raw) => raw.map(Math.round)),
-      lhc: rawpalettes.vibrant.map(colorconvert.rgb.lch)
-    }
-  }
-}
-
-async function getJpegObjects ({ data, result, errors }) {
-  const dataPath = pickTnToProcess(result, data.path)
-  try {
-    const preds = yolo9000.detect(dataPath)
-    const labels = yolo9000.getLabels(preds).join(', ')
-    return {
-      preds,
-      labels
-    }
-  } catch (err) {
-    return errorStacker('getJpegLabels', errors, data)
-  }
-}
-
 // Pipelines
 
-const { Sync, Async, Fields } = require('./pipeline')
+const { Fields } = require('./pipeline')
 
-const PipeJPEG = Async([
-  Fields({
-    dimensions: getJpegDimensions,
-    exif: getJpegExif,
-    hash: getHash
-  }),
-  Sync([
-    Fields({
-      thumbnails: getJpegThumbnails
-    }),
-    Async([
-      Fields({
-        colors: getJpegColors,
-        objects: getJpegObjects
-      })
-    ])
-  ])
-])
+const PipeJPEG = Fields({
+  dimensions: getJpegDimensions,
+  exif: getJpegExif,
+  hash: getHash,
+  thumbnails: getJpegThumbnails
+})
 
 // Execution
 
