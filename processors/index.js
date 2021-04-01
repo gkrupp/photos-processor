@@ -64,7 +64,7 @@ async function init ({ colls, queue, mlqueue, host = '*', processes = 1 }) {
   Q = queue
   Q.process(HOST, processes, pathlib.join(__dirname, './PhotoProcessor.proc.js'))
   // mlqueue
-  MLQ = queue
+  MLQ = mlqueue
   MLQ.process(HOST, processes, pathlib.join(__dirname, './MLProcessor.proc.js'))
   // roots
   HOST = host
