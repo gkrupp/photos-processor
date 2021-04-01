@@ -10,7 +10,9 @@ function Context (initiator, command) {
 
 function Sync (commands = []) {
   return async function (pl) {
-    commands.forEach(async (cmd) => await cmd(pl))
+    for (const cmd of commands) {
+			await cmd(pl)
+		}
     return pl
   }
 }

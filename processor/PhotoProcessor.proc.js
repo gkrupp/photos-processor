@@ -21,6 +21,15 @@ function errorStacker (ref, stack, details = {}, defret = null) {
   }
 }
 
+function pickTnToProcess (result, fallback) {
+  const tnType = 'h960'
+  if (result.thumbnails && result.thumbnails[tnType]) {
+    return result.thumbnails[tnType].path || fallback
+  } else {
+    return fallback
+  }
+}
+
 // Getters
 
 async function getJpegDimensions ({ data, errors }) {
@@ -70,30 +79,7 @@ async function getJpegExif ({ data }) {
     mergeOutput: true,
     silentErrors: true
   })
-}
-
-async function getJpegColors ({ data, errors }) {
-  const rawpalettes = {
-    dominant: await colorthief.getPaletteFromURL(data.path, 10, 10)
-      .catch(errorStacker('getJpegColors/palette', errors, data, [])),
-    vibrant: await vibrant.from(data.path, {})
-      .getPalette()
-      .then((palette) => {
-        const colors = ['Vibrant', 'DarkVibrant', 'LightVibrant', 'Muted', 'DarkMuted', 'LightMuted']
-        return colors.map((name) => palette[name].rgb)
-      })
-      .catch(errorStacker('getJpegColors/vibrant', errors, data, []))
-  }
-  return {
-    dominant: {
-      rgb: rawpalettes.dominant.map((raw) => raw.map(Math.round)),
-      lhc: rawpalettes.dominant.map(colorconvert.rgb.lch)
-    },
-    vibrant: {
-      rgb: rawpalettes.vibrant.map((raw) => raw.map(Math.round)),
-      lhc: rawpalettes.vibrant.map(colorconvert.rgb.lch)
-    }
-  }
+    .then((exif) => exif || {})
 }
 
 async function getHash ({ data, errors }) {
@@ -118,14 +104,14 @@ async function getHash ({ data, errors }) {
 
 const resizers = require('./resizers')
 async function getJpegThumbnails ({ data, errors }) {
-  if (process.env.NODE_ENV === 'test') {
-    console.info('[ info ] Thumbnail generation is omitted in test mode')
-    return []
-  }
-  // gen
   const thumbnails = {}
   for (const tnType in resizers) {
-    const tnPath = pathlib.join(config.content.thumbDir, tnType, data.id + '.jpg')
+    let tnPath = ''
+    if (process.env.NODE_ENV === 'test') {
+      tnPath = pathlib.join(process.cwd(), 'test', `${tnType}_${data.id}.jpg`)
+    } else {
+      tnPath = pathlib.join(config.content.thumbDir, tnType, data.id + '.jpg')
+    }
     // check existance
     const exists = await fs.promises.access(tnPath)
       .then(() => true)
@@ -151,10 +137,40 @@ async function getJpegThumbnails ({ data, errors }) {
   return thumbnails
 }
 
-async function getJpegObjects ({ data, errors }) {
+async function getJpegColors ({ data, result, errors }) {
+  const dataPath = pickTnToProcess(result, data.path)
+  const promiseResults = await Promise.all([
+    colorthief.getPaletteFromURL(dataPath, 10, 5)
+      .catch(errorStacker('getJpegColors/palette', errors, data, [])),
+    vibrant.from(dataPath, { quality: 5 })
+      .getPalette()
+      .then((palette) => {
+        const colors = ['Vibrant', 'DarkVibrant', 'LightVibrant', 'Muted', 'DarkMuted', 'LightMuted']
+        return colors.map((name) => palette[name].rgb)
+      })
+      .catch(errorStacker('getJpegColors/vibrant', errors, data, []))
+  ])
+  const rawpalettes = {
+    dominant: promiseResults[0],
+    vibrant: promiseResults[1]
+  }
+  return {
+    dominant: {
+      rgb: rawpalettes.dominant.map((raw) => raw.map(Math.round)),
+      lhc: rawpalettes.dominant.map(colorconvert.rgb.lch)
+    },
+    vibrant: {
+      rgb: rawpalettes.vibrant.map((raw) => raw.map(Math.round)),
+      lhc: rawpalettes.vibrant.map(colorconvert.rgb.lch)
+    }
+  }
+}
+
+async function getJpegObjects ({ data, result, errors }) {
+  const dataPath = pickTnToProcess(result, data.path)
   try {
-    const preds = yolo9000.detect(data.path)
-    const labels = yolo9000.getLabels(preds)
+    const preds = yolo9000.detect(dataPath)
+    const labels = yolo9000.getLabels(preds).join(', ')
     return {
       preds,
       labels
@@ -166,16 +182,26 @@ async function getJpegObjects ({ data, errors }) {
 
 // Pipelines
 
-const { Fields } = require('./pipeline')
+const { Sync, Async, Fields } = require('./pipeline')
 
-const PipeJPEG = Fields({
-  dimensions: getJpegDimensions,
-  exif: getJpegExif,
-  colors: getJpegColors,
-  hash: getHash,
-  thumbnails: getJpegThumbnails,
-  objects: getJpegObjects
-})
+const PipeJPEG = Async([
+  Fields({
+    dimensions: getJpegDimensions,
+    exif: getJpegExif,
+    hash: getHash
+  }),
+  Sync([
+    Fields({
+      thumbnails: getJpegThumbnails
+    }),
+    Async([
+      Fields({
+        colors: getJpegColors,
+        objects: getJpegObjects
+      })
+    ])
+  ])
+])
 
 // Execution
 
