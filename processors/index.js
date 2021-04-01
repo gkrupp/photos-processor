@@ -11,7 +11,7 @@ let photoDB = null
 
 async function handleCompleted (job, res) {
   const { id, path } = job.data
-  console.log('Q', job.data.path, res.error)
+  console.log('Q', path, res.error)
   // flag
   await photoDB._processingFlags(id, {
     processing: false,
@@ -37,13 +37,13 @@ async function passToML (job, res) {
   }
   if (mlproc) {
     await photoDB._processingFlags(id, { mlprocessing: true })
-    await MLQ.add(HOST, { id, path: dataPath })
+    await MLQ.add(HOST, { id, path: dataPath, originalPath: path })
   }
 }
 
 async function handleMLCompleted (job, res) {
-  const { id, path } = job.data
-  console.log('MLQ', job.data.path, res.error)
+  const { id, path, originalPath } = job.data
+  console.log('MLQ', path, `(${originalPath})`, res.error)
   // flag
   await photoDB._processingFlags(id, {
     mlprocessing: false,
@@ -51,7 +51,7 @@ async function handleMLCompleted (job, res) {
     mlversion: config.processor.mlversion
   })
   // update
-  await photoDB.updateOne({ id, path }, {
+  await photoDB.updateOne({ id, path: originalPath }, {
     $set: {
       ...res.data,
       mlprocessed: new Date()
@@ -91,6 +91,13 @@ async function process (id, path, mlproc = true) {
   console.log(`Processor.process(id:'${id}', path:'${path}')`)
   await Q.add(HOST, { id, path, mlproc })
   await photoDB._processingFlags(id, { processing: true })
+  return 1
+}
+async function mlProcess (id, path, originalPath) {
+  if (!id || !path || !originalPath) throw new Error('\'id\' or \'path\' or \'originalPath\' is not defined for mlprocessing')
+  console.log(`Processor.mlProcess(id:'${id}', path:'${path}', originalPath:'${originalPath}')`)
+  await MLQ.add(HOST, { id, path, originalPath })
+  await photoDB._processingFlags(id, { mlprocessing: true })
   return 1
 }
 
@@ -136,6 +143,7 @@ module.exports = {
   init,
   stop,
   process,
+  mlProcess,
   processMissing,
   mlProcessMissing,
   versionUpgrade,
