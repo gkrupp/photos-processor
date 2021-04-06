@@ -17,7 +17,7 @@ module.exports = {
   */
 
   /*
-  'i80': async (inputPath, outputPath) =>
+  i80: async (inputPath, outputPath) =>
     sharp(inputPath, defaultInputOptions)
       .rotate()
       .resize({ width: 80, height: 80, fit: 'cover' })
@@ -26,24 +26,39 @@ module.exports = {
       .toFile(outputPath),
   */
 
-  h260: async (inputPath, outputPath) =>
+  h240: async (inputPath, outputPath) =>
     sharp(inputPath, defaultInputOptions)
       .rotate()
-      .resize({ width: 350, height: 260, fit: 'outside' })
+      .resize({ width: 320, height: 240, fit: 'outside' })
+      .sharpen()
       .jpeg({ quality: 80, progressive: true })
       .toFile(outputPath),
 
-  h340: async (inputPath, outputPath) =>
+  h360: async (inputPath, outputPath) =>
     sharp(inputPath, defaultInputOptions)
       .rotate()
-      .resize({ width: 450, height: 340, fit: 'outside' })
+      .resize({ width: 480, height: 360, fit: 'outside' })
       .jpeg({ quality: 80, progressive: true })
       .toFile(outputPath),
 
-  h960: async (inputPath, outputPath) =>
+  h480: async (inputPath, outputPath) =>
     sharp(inputPath, defaultInputOptions)
       .rotate()
-      .resize({ width: 1280, height: 960, fit: 'outside' })
+      .resize({ width: 640, height: 480, fit: 'outside' })
+      .jpeg({ quality: 80, progressive: true })
+      .toFile(outputPath),
+
+  h720: async (inputPath, outputPath) =>
+    sharp(inputPath, defaultInputOptions)
+      .rotate()
+      .resize({ width: 960, height: 720, fit: 'outside' })
+      .jpeg({ quality: 80, progressive: true })
+      .toFile(outputPath),
+
+  h1200: async (inputPath, outputPath) =>
+    sharp(inputPath, defaultInputOptions)
+      .rotate()
+      .resize({ width: 1600, height: 1200, fit: 'outside' })
       .jpeg({ quality: 80, progressive: true })
       .toFile(outputPath)
 

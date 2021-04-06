@@ -9,8 +9,11 @@ module.exports = {
     mlStartup: Boolean(process.env.MLPROCESSOR_STARTUP),
     mlRequiredVersion: Number(process.env.MLPROCESSOR_REQUIRED_VERSION)
   },
-  content: {
-    thumbDir: process.env.CONTENT_THUMB_DIR
+  caches: {
+    thumbnails: {
+      root: process.env.CACHE_THUMBS_ROOT,
+      levels: process.env.CACHE_THUMBS_LEVELS
+    }
   },
   proc: {
     host: process.env.PROC_HOST,

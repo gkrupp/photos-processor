@@ -30,7 +30,7 @@ async function handleCompleted (job, res) {
 
 async function passToML (job, res) {
   const { id, path, mlproc = true } = job.data
-  const tnType = 'h960'
+  const tnType = 'h1200'
   let dataPath = path
   if (res.data.thumbnails && res.data.thumbnails[tnType]) {
     dataPath = res.data.thumbnails[tnType].path || path

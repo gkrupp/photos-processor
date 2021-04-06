@@ -5,9 +5,12 @@ const exifr = require('exifr')
 const xxh = require('xxhashjs')
 const sharp = require('sharp')
 const config = require('../config')
+const CacheManager = require('../../photos-common/services/CacheService')
 
 const VERSION = config.processor.version
 const HASH_BUF_LEN = 4 * (128 * 1024) // 4 * (record_size)
+
+const ThumbsCache = new CacheManager(config.caches.thumbnails)
 
 function errorStacker (ref, stack, details = {}, defret = null) {
   return function (err) {
@@ -93,16 +96,15 @@ const resizers = require('./resizers')
 async function getJpegThumbnails ({ data, errors }) {
   const thumbnails = {}
   for (const tnType in resizers) {
+    const tnName = [data.id, '_', tnType, '.jpg']
     let tnPath = ''
     if (process.env.NODE_ENV === 'test') {
       tnPath = pathlib.join(process.cwd(), 'test', `${tnType}_${data.id}.jpg`)
     } else {
-      tnPath = pathlib.join(config.content.thumbDir, tnType, data.id + '.jpg')
+      tnPath = await ThumbsCache.locate(data.id, tnName)
     }
     // check existance
-    const exists = await fs.promises.access(tnPath)
-      .then(() => true)
-      .catch(() => false)
+    const exists = await ThumbsCache.exists(tnName)
     // generate if not exists
     if (!exists) {
       await resizers[tnType](data.path, tnPath)
