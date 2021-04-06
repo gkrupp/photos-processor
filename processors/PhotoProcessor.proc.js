@@ -155,8 +155,7 @@ module.exports = async function PhotoProcessor ({ data }) {
   try {
     await PipeJPEG(pl)
   } catch (err) {
-    console.error(err, data)
-    pl.errors.push(err.message)
+    errorStacker('$', pl.errors, data)
   }
   ret.error = pl.errors.length ? pl.errors : null
   //

@@ -12,7 +12,7 @@ module.exports = {
   caches: {
     thumbnails: {
       root: process.env.CACHE_THUMBS_ROOT,
-      levels: process.env.CACHE_THUMBS_LEVELS
+      levels: Number(process.env.CACHE_THUMBS_LEVELS)
     }
   },
   proc: {
