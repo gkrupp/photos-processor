@@ -55,6 +55,15 @@ module.exports = {
       .jpeg({ quality: 80, progressive: true })
       .toFile(outputPath),
 
+  /*
+  h960: async (inputPath, outputPath) =>
+    sharp(inputPath, defaultInputOptions)
+      .rotate()
+      .resize({ width: 1280, height: 960, fit: 'outside' })
+      .jpeg({ quality: 80, progressive: true })
+      .toFile(outputPath),
+  */
+
   h1200: async (inputPath, outputPath) =>
     sharp(inputPath, defaultInputOptions)
       .rotate()

@@ -34,11 +34,11 @@ async function getJpegColors ({ data, result, errors }) {
     vibrant: promiseResults[1]
   }
   return {
-    dominant: {
+    palette: {
       rgb: rawpalettes.dominant.map((raw) => raw.map(Math.round)),
       lhc: rawpalettes.dominant.map(colorconvert.rgb.lch)
     },
-    vibrant: {
+    prominent: {
       rgb: rawpalettes.vibrant.map((raw) => raw.map(Math.round)),
       lhc: rawpalettes.vibrant.map(colorconvert.rgb.lch)
     }
