@@ -3,9 +3,9 @@ const colorconvert = require('color-convert')
 const colorthief = require('color-thief-node')
 const vibrant = require('node-vibrant')
 const yolo9000 = require('../../photos-common/ml/yolo')
-const config = require('../config')
 
-const VERSION = config.processor.mlVersion
+const VERSION = 0
+const REQUIRED_VERSION = 0
 
 function errorStacker (ref, stack, details = {}, defret = null) {
   return function (err) {
@@ -69,7 +69,7 @@ const PipeJPEG = Fields({
 
 // Execution
 
-module.exports = async function PhotoProcessor ({ data }) {
+module.exports = async function MLProcessorPipe ({ data }) {
   const ret = {
     error: null,
     version: VERSION,
@@ -90,3 +90,6 @@ module.exports = async function PhotoProcessor ({ data }) {
   //
   return ret
 }
+
+module.exports.version = VERSION
+module.exports.requiredVersion = REQUIRED_VERSION

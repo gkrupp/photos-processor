@@ -11,8 +11,8 @@ function Context (initiator, command) {
 function Sync (commands = []) {
   return async function (pl) {
     for (const cmd of commands) {
-			await cmd(pl)
-		}
+      await cmd(pl)
+    }
     return pl
   }
 }

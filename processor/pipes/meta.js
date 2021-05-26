@@ -1,16 +1,13 @@
 
 const fs = require('fs')
-const pathlib = require('path')
 const exifr = require('exifr')
 const xxh = require('xxhashjs')
 const sharp = require('sharp')
-const config = require('../config')
-const CacheManager = require('../../photos-common/services/CacheService')
 
-const VERSION = config.processor.version
+const VERSION = 0
+const REQUIRED_VERSION = 0
+
 const HASH_BUF_LEN = 4 * (128 * 1024) // 4 * (record_size)
-
-const thumbsCache = new CacheManager(config.caches.thumbnails)
 
 function errorStacker (ref, stack, details = {}, defret = null) {
   return function (err) {
@@ -60,7 +57,13 @@ async function getJpegExif ({ data }) {
     makerNote: false,
     userComment: false,
     // Filters
-    skip: ['makerNote', 'userComment'],
+    skip: [
+      'makerNote', 'userComment',
+      'MediaWhitePoint', 'MediaBlackPoint',
+      'RedMatrixColumn', 'GreenMatrixColumn', 'BlueMatrixColumn',
+      'RedTRC', 'GreenTCR', 'BlueTCR',
+      'ChromaticAdaptation'
+    ],
     // Formatters
     translateKeys: true,
     translateValues: true,
@@ -92,57 +95,21 @@ async function getHash ({ data, errors }) {
   }).catch(errorStacker('getHash/open', errors, data))
 }
 
-const resizers = require('./resizers')
-async function getJpegThumbnails ({ data, errors }) {
-  const thumbnails = {}
-  for (const tnType in resizers) {
-    let tnPath = ''
-    if (process.env.NODE_ENV === 'test') {
-      tnPath = pathlib.join(process.cwd(), 'test', `${tnType}.${data.id}.jpg`)
-    } else {
-      tnPath = await thumbsCache.locate(data.id, [tnType, 'jpg'])
-    }
-    // check existance
-    const exists = await thumbsCache.exists(data.id, [tnType, 'jpg'])
-    // generate if not exists
-    if (!exists) {
-      await resizers[tnType](data.path, tnPath)
-        .catch(errorStacker('getJpegThumbnails/gen/' + tnType, errors, data))
-    }
-    // meta
-    thumbnails[tnType] = await sharp(tnPath)
-      .metadata()
-      .then(async (metadata) => {
-        return {
-          path: tnPath,
-          width: metadata.width,
-          height: metadata.height,
-          size: await fs.promises.stat(tnPath)
-            .then((stat) => stat.size)
-            .catch(errorStacker('getJpegThumbnails/meta/stat/' + tnType, errors, data))
-        }
-      })
-      .catch(errorStacker('getJpegThumbnails/meta/' + tnType, errors, data))
-  }
-  return thumbnails
-}
-
 // Pipelines
 
-const { Fields } = require('./pipeline')
+const { Fields } = require('../pipeline')
 
 const PipeJPEG = Fields({
   dimensions: getJpegDimensions,
   exif: getJpegExif,
-  hash: getHash,
-  thumbnails: getJpegThumbnails
+  hash: getHash
 })
 
 // Execution
 
-module.exports = async function PhotoProcessor ({ data }) {
+module.exports = async function MetaProcessorPipe ({ data }) {
   const ret = {
-    error: null,
+    errors: null,
     version: VERSION,
     data: {}
   }
@@ -156,7 +123,10 @@ module.exports = async function PhotoProcessor ({ data }) {
   } catch (err) {
     errorStacker('$', pl.errors, data)
   }
-  ret.error = pl.errors.length ? pl.errors : null
+  ret.errors = pl.errors.length ? pl.errors : null
   //
   return ret
 }
+
+module.exports.version = VERSION
+module.exports.requiredVersion = REQUIRED_VERSION

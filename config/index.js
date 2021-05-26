@@ -2,18 +2,8 @@ require('dotenv')
 
 module.exports = {
   processor: {
-    version: Number(process.env.PROCESSOR_VERSION),
-    startup: Boolean(process.env.PROCESSOR_STARTUP),
-    requiredVersion: Number(process.env.PROCESSOR_REQUIRED_VERSION),
-    mlVersion: Number(process.env.MLPROCESSOR_VERSION),
-    mlStartup: Boolean(process.env.MLPROCESSOR_STARTUP),
-    mlRequiredVersion: Number(process.env.MLPROCESSOR_REQUIRED_VERSION)
-  },
-  caches: {
-    thumbnails: {
-      root: process.env.CACHE_THUMBS_ROOT,
-      levels: Number(process.env.CACHE_THUMBS_LEVELS)
-    }
+    processMissing: Boolean(process.env.PROCESSOR_PROCESSMISSING),
+    versionUpgrade: Boolean(process.env.PROCESSOR_VERSIONUPGRADE)
   },
   proc: {
     host: process.env.PROC_HOST,

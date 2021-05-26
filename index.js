@@ -4,20 +4,24 @@ const config = require('./config')
 
 const MongoDBService = require('../photos-common/services/MongoDBService')
 const QueueService = require('../photos-common/services/QueueService')
-const Processors = require('./processors')
+const Processor = require('./processor')
 
 async function init () {
   // DB init
   await MongoDBService.init(config.mongo)
   // Queue init
   await QueueService.init({ redis: config.redis })
-  const processorQueue = QueueService.create([config.proc.queuePrefix, config.queues.processor].join(''))
-  const mlprocessorQueue = QueueService.create([config.proc.queuePrefix, config.queues.mlprocessor].join(''))
+  const queue = QueueService.create([config.proc.queuePrefix, config.queues.processor].join(''))
+  // Pipes init
+  const pipes = {}
+  for (const name of Processor.pipesNames) {
+    pipes[name] = QueueService.create([config.proc.queuePrefix, config.queues.processor, '/', name].join(''))
+  }
   // Processor init
-  await Processors.init({
+  await Processor.init({
+    queue,
+    pipes,
     colls: MongoDBService.colls,
-    queue: processorQueue,
-    mlqueue: mlprocessorQueue,
     host: config.proc.host,
     processes: config.proc.processes
   })
@@ -26,21 +30,19 @@ async function init () {
   process.send = process.send || (() => {})
   process.send('ready')
 
-  // (Startup) ProcessMissing and VersionUpgrade
-  if (config.processor.startup) {
-    await Processors.processMissing()
-    await Processors.versionUpgrade(config.processor.requiredVersion)
+  // ProcessMissing and VersionUpgrade
+  if (config.processor.processMissing) {
+    await Processor.processMissing()
   }
-  if (config.processor.mlStartup) {
-    await Processors.mlProcessMissing()
-    await Processors.mlVersionUpgrade(config.processor.mlRequiredVersion)
+  if (config.processor.versionUpgrade) {
+    await Processor.versionUpgrade()
   }
 }
 
 async function stop () {
   console.log('Shutting down..')
   try {
-    await Processors.stop()
+    await Processor.stop()
     await QueueService.stop()
     await MongoDBService.stop()
   } catch (err) {
