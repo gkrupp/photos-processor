@@ -3,19 +3,13 @@ const fs = require('fs')
 const exifr = require('exifr')
 const xxh = require('xxhashjs')
 const sharp = require('sharp')
+const { Fields } = require('../pipeline')
+const { errorStacker, pipelineInit } = require('../utils')
 
 const VERSION = 0
 const REQUIRED_VERSION = 0
 
 const HASH_BUF_LEN = 4 * (128 * 1024) // 4 * (record_size)
-
-function errorStacker (ref, stack, details = {}, defret = null) {
-  return function (err) {
-    console.error(ref, err, details)
-    stack.push([ref, err.message])
-    return defret
-  }
-}
 
 // Getters
 
@@ -97,9 +91,8 @@ async function getHash ({ data, errors }) {
 
 // Pipelines
 
-const { Fields } = require('../pipeline')
-
-const PipeJPEG = Fields({
+const PipeJPEG =
+Fields({
   dimensions: getJpegDimensions,
   exif: getJpegExif,
   hash: getHash
@@ -108,16 +101,7 @@ const PipeJPEG = Fields({
 // Execution
 
 module.exports = async function MetaProcessorPipe ({ data }) {
-  const ret = {
-    errors: null,
-    version: VERSION,
-    data: {}
-  }
-  const pl = {
-    data,
-    result: ret.data,
-    errors: []
-  }
+  const { ret, pl } = pipelineInit({ version: VERSION, data })
   try {
     await PipeJPEG(pl)
   } catch (err) {

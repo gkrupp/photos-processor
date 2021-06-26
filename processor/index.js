@@ -6,7 +6,8 @@ const Photo = require('../../photos-common/models/photo')
 let Q = null
 let HOST = '*'
 const PIPES = {
-  meta: null
+  meta: null,
+  feature: null
 }
 
 const VERSIONS = {}
@@ -40,7 +41,8 @@ async function piper (job, done) {
 
 const pipeResultHandlerFactory = (name) => async (job, res) => {
   const { id, path } = job.data
-  console.log(name, id, res.errors)
+  if (res.errors === null) console.log(name, id.substr(0, 16) + '..')
+  else console.log(name, id.substr(0, 16) + '..', res.errors)
   // flags
   await photoDB.popProcessingFlags(id, `@processing/${name}`)
   if (res.errors) await photoDB.pushProcessingFlags(id, res.errors)
@@ -84,7 +86,7 @@ async function stop () {
 
 async function process (id, path, _pipes = null) {
   if (_pipes === null) _pipes = Object.keys(PIPES)
-  if (!id && !path) throw new Error('\'id\' or \'path\' is not defined for processing')
+  if (!id || !path) throw new Error('\'id\' or \'path\' is not defined for processing')
   await Q.add(HOST, { id, path, _pipes })
   return true
 }
@@ -109,7 +111,6 @@ async function versionUpgrade (_pipes = null) {
   if (_pipes === null) _pipes = Object.keys(PIPES)
   let totalLength = 0
   for (const name of _pipes) {
-    console.log(VERSIONS, name)
     const query = {
       [`processed.${name}.version`]: { $not: { $gte: VERSIONS[name].requiredVersion } },
       ...Photo.canProcess()

@@ -1,8 +1,8 @@
 
-function Context (initiator, command) {
+function Context (initiator, pipe) {
   return async function (pl) {
     const ctxClose = await initiator(pl)
-    command(pl)
+    await pipe(pl)
     await ctxClose(pl)
     return pl
   }

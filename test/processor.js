@@ -4,18 +4,20 @@ NODE_ENV=test node test.js
 
 */
 
-async function processor (procfile, data) {
+async function processor (procfile, data, N = 5) {
   const tStartup = Date.now()
   const processor = require(procfile)
   const tStart = Date.now()
-  return await processor({ data }).then((meta) => {
-    const tEnd = Date.now()
-    console.log(meta.data)
-    console.log('startup:', (tStart - tStartup) / 1000)
-    console.log('processing:', (tEnd - tStart) / 1000)
-    console.log('total:', (tEnd - tStartup) / 1000)
-    return meta
+  await processor({ data }).then((res) => {
+    console.log(res.data)
   })
+  for (let i = 0; i < N - 1; ++i) {
+    await processor({ data })
+  }
+  const tEnd = Date.now()
+  console.log('startup:', (tStart - tStartup) / 1000 / N)
+  console.log('processing:', (tEnd - tStart) / 1000 / N)
+  console.log('total:', (tEnd - tStartup) / 1000)
 }
 
 async function main () {
@@ -23,9 +25,7 @@ async function main () {
     id: 0,
     path: './test/dogs.JPG'
   }
-  const res1 = await processor('../processor/PhotoProcessor.proc.js', data)
-  data.path = res1.data.thumbnails.h960.path
-  await processor('../processor/MLProcessor.proc.js', data)
+  await processor('../processor/pipes/feature.js', data)
 }
 
 main()

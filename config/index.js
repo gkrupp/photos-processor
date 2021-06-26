@@ -13,8 +13,7 @@ module.exports = {
   },
   queues: {
     tracker: process.env.COMMON_Q_TRACKER,
-    processor: process.env.COMMON_Q_PROCESSOR,
-    mlprocessor: process.env.COMMON_Q_MLPROCESSOR
+    processor: process.env.COMMON_Q_PROCESSOR
   },
   redis: {
     host: process.env.RD_HOST,
