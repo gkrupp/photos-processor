@@ -6,8 +6,8 @@ const vibrant = require('node-vibrant')
 const { Context, Fields } = require('../pipeline')
 const { errorStacker, pipelineInit } = require('../utils')
 
-const VERSION = 4
-const REQUIRED_VERSION = 4
+const VERSION = 5
+const REQUIRED_VERSION = 5
 
 // Getters
 
@@ -27,10 +27,9 @@ async function downsampleCtx ({ data, ctx, errors }) {
 
 async function getJpegColors ({ data, ctx, errors }) {
   const promiseResults = await Promise.all([
-    // still uses path :/
-    colorthief.getPalette(ctx.downsampledBuff, 10, 5)
+    colorthief.getPalette(ctx.downsampledBuff, 10, 4)
       .catch(errorStacker('getJpegColors/palette', errors, data, [])),
-    vibrant.from(ctx.downsampledBuff, { quality: 5 })
+    vibrant.from(ctx.downsampledBuff, { quality: 4 })
       .getPalette()
       .then((palette) => {
         const colors = ['Vibrant', 'DarkVibrant', 'LightVibrant', 'Muted', 'DarkMuted', 'LightMuted']

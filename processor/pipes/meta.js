@@ -6,8 +6,8 @@ const sharp = require('sharp')
 const { Fields } = require('../pipeline')
 const { errorStacker, pipelineInit } = require('../utils')
 
-const VERSION = 0
-const REQUIRED_VERSION = 0
+const VERSION = 1
+const REQUIRED_VERSION = 1
 
 const HASH_BUF_LEN = 4 * (128 * 1024) // 4 * (record_size)
 
@@ -24,7 +24,7 @@ async function getJpegDimensions ({ data, errors }) {
         width: width,
         height: height,
         mpx: width * height / 1E6,
-        aspectRatio: width / height,
+        aspectRatio: Math.round((width / height + Number.EPSILON) * 1000) / 1000,
         channels: metadata.channels,
         density: metadata.density || null,
         hasAlpha: metadata.hasAlpha
