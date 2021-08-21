@@ -1,4 +1,5 @@
 node_modules/
+.ipynb_checkpoints/
 config/.*
 logs/
 test/*.JPG

@@ -1,0 +1,23 @@
+                  .jpg/.jpeg    .png    .webp    .heic    .raw
+*tracker          x             x       x
+
+PHOTOS            x             x       x
+
+meta              x             x       x
+-dimensions       x             x       x
+-exif             x             x       x         x
+-hash             x             x       x         x       x
+
+feature           x             x       x
+-downsample       x             x       x
+-colors           x             x       x
+
+quality
+/blur
+/brightness
+/saturation
+
+ml
+/faces
+/objects
+/sensitive
