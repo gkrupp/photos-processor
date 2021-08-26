@@ -8,9 +8,9 @@ meta              x             x       x
 -exif             x             x       x         x
 -hash             x             x       x         x       x
 
-feature           x             x       x
+feature           x             x
 -downsample       x             x       x
--colors           x             x       x
+-colors           x             x
 
 quality
 /blur

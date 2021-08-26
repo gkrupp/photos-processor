@@ -3,13 +3,13 @@ const fs = require('fs')
 const exifr = require('exifr')
 const xxh = require('xxhashjs')
 const sharp = require('sharp')
-const { Fields } = require('../pipeline')
+const { Sync, Fields } = require('../pipeline')
 const { errorStacker, pipelineInit } = require('../utils')
 
-const VERSION = 1
-const REQUIRED_VERSION = 1
+const VERSION = 2
+const REQUIRED_VERSION = 2
 
-const HASH_BUF_LEN = 4 * (128 * 1024) // 4 * (record_size)
+const HASH_BUF_LEN = 2 * (128 * 1024) // 4 * (record_size)
 
 // Getters
 
@@ -26,43 +26,80 @@ async function getJpegDimensions ({ data, errors }) {
         mpx: width * height / 1E6,
         aspectRatio: Math.round((width / height + Number.EPSILON) * 1000) / 1000,
         channels: metadata.channels,
-        density: metadata.density || null,
-        hasAlpha: metadata.hasAlpha
+        hasAlpha: metadata.hasAlpha,
+        density: metadata.density || null
       }
     }).catch(errorStacker('getJpegDimensions', errors, data))
 }
 
 async function getJpegExif ({ data }) {
   return exifr.parse(data.path, {
-    // Segments (JPEG APP Segment, PNG Chunks, HEIC Boxes, etc...)
-    tiff: true,
-    xmp: true,
-    icc: true,
-    iptc: true,
-    jfif: true, // (jpeg only)
-    ihdr: true, // (png only)
-    // Sub-blocks inside TIFF segment
-    ifd0: true, // aka image
-    ifd1: true, // aka thumbnail
-    exif: true,
-    gps: true,
-    interop: true,
-    // Other TIFF tags
-    makerNote: false,
-    userComment: false,
     // Filters
     skip: [
-      'makerNote', 'userComment',
       'MediaWhitePoint', 'MediaBlackPoint',
       'RedMatrixColumn', 'GreenMatrixColumn', 'BlueMatrixColumn',
       'RedTRC', 'GreenTCR', 'BlueTCR',
-      'ChromaticAdaptation'
+      'ChromaticAdaptation',
+      'ComponentsConfiguration'
+    ],
+    pick: [
+      'ExifVersion',
+      'ExifImageWidth',
+      'ExifImageHeight',
+
+      'Make',
+      'Model',
+      'Software',
+
+      'Orientation',
+
+      'CreateDate',
+      'ModifyDate',
+      'OffsetTime',
+
+      'Flash',
+
+      'ExposureTime',
+      'ExposureProgram',
+      'ExposureCompensation',
+      'RecommendedExposureIndex',
+
+      'ISO',
+      'FNumber',
+      'SensingMethod',
+      'SensitivityType',
+      'ShutterSpeedValue',
+      'ApertureValue',
+
+      'ColorSpace',
+
+      'LensInfo',
+      'LensModel',
+      'LensSerialNumber',
+      'FocalLength',
+      'FocalLengthIn35mmFormat',
+      'DigitalZoomRatio',
+
+      'MeteringMode',
+      'ExposureMode',
+      'CustomRendered',
+      'WhiteBalance',
+      'SceneCaptureType',
+      'BrightnessValue',
+      'SceneType',
+
+      'GPSLatitudeRef',
+      'GPSLatitude',
+      'GPSLongitudeRef',
+      'GPSLongitude',
+      'GPSAltitudeRef',
+      'GPSAltitude'
     ],
     // Formatters
+    sanitize: true,
+    reviveValues: true,
     translateKeys: true,
     translateValues: true,
-    reviveValues: true,
-    sanitize: true,
     mergeOutput: true,
     silentErrors: true
   })
@@ -89,14 +126,43 @@ async function getHash ({ data, errors }) {
   }).catch(errorStacker('getHash/open', errors, data))
 }
 
+function postProcessing (pl) {
+  // dates
+  const created = pl.result?.exif?.CreateDate
+  const modified = pl.result?.exif?.ModifyDate || created
+  if (created) {
+    pl.result.created = new Date(created)
+  }
+  if (modified) {
+    pl.result.modified = new Date(modified)
+  }
+  // GPS
+  const latitude = pl.result?.exif?.latitude || null
+  const longitude = pl.result?.exif?.longitude || null
+  const sealvl = (pl.result?.exif?.GPSAltitudeRef instanceof Array) ? pl.result.exif.GPSAltitudeRef[0] : pl.result?.exif?.GPSAltitudeRef || 0
+  const altitude = (pl.result?.exif?.altitude || pl.result?.exif?.GPSAltitude || 0) * (2 * (1 - sealvl) - 1)
+  if (latitude !== null && longitude !== null) {
+    pl.result.location = {
+      type: 'Point',
+      coordinates: [latitude, longitude, altitude]
+    }
+  } else {
+    pl.result.location = null
+  }
+  return pl
+}
+
 // Pipelines
 
 const PipeJPEG =
-Fields({
-  dimensions: getJpegDimensions,
-  exif: getJpegExif,
-  hash: getHash
-})
+  Sync([
+    Fields({
+      dimensions: getJpegDimensions,
+      exif: getJpegExif,
+      hash: getHash
+    }),
+    postProcessing
+  ])
 
 // Execution
 

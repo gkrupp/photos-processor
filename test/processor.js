@@ -23,9 +23,9 @@ async function processor (procfile, data, N = 5) {
 async function main () {
   const data = {
     id: 0,
-    path: './test/dogs.JPG'
+    path: './test/climb.jpg'
   }
-  await processor('../processor/pipes/feature.js', data)
+  await processor('../processor/pipes/meta.js', data)
 }
 
 main()
