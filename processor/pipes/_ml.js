@@ -5,6 +5,7 @@ const { errorStacker, pipelineInit } = require('../utils')
 
 const VERSION = 0
 const REQUIRED_VERSION = 0
+const DEPENDENCIES = {}
 
 // Getters
 
@@ -44,3 +45,4 @@ module.exports = async function MLProcessorPipe ({ data }) {
 
 module.exports.version = VERSION
 module.exports.requiredVersion = REQUIRED_VERSION
+module.exports.dependencies = DEPENDENCIES

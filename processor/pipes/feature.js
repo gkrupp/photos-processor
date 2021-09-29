@@ -8,6 +8,7 @@ const { errorStacker, pipelineInit } = require('../utils')
 
 const VERSION = 6
 const REQUIRED_VERSION = 6
+const DEPENDENCIES = {}
 
 // Getters
 
@@ -79,3 +80,4 @@ module.exports = async function FeatureProcessorPipe ({ data }) {
 
 module.exports.version = VERSION
 module.exports.requiredVersion = REQUIRED_VERSION
+module.exports.dependencies = DEPENDENCIES

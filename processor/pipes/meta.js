@@ -6,8 +6,11 @@ const sharp = require('sharp')
 const { Sync, Fields } = require('../pipeline')
 const { errorStacker, pipelineInit } = require('../utils')
 
-const VERSION = 2
-const REQUIRED_VERSION = 2
+const VERSION = 4
+const REQUIRED_VERSION = VERSION
+const DEPENDENCIES = {
+  // depname: 0
+}
 
 const HASH_BUF_LEN = 2 * (128 * 1024) // 4 * (record_size)
 
@@ -180,3 +183,4 @@ module.exports = async function MetaProcessorPipe ({ data }) {
 
 module.exports.version = VERSION
 module.exports.requiredVersion = REQUIRED_VERSION
+module.exports.dependencies = DEPENDENCIES
