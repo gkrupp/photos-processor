@@ -32,15 +32,15 @@ Fields({
 // Execution
 
 module.exports = async function MLProcessorPipe ({ data }) {
-  const { ret, pl } = pipelineInit({ version: VERSION, data })
+  const pl = pipelineInit({ version: VERSION, data })
   try {
     await PipeJPEG(pl)
   } catch (err) {
     errorStacker('$', pl.errors, data)
   }
-  ret.errors = pl.errors.length ? pl.errors : null
+  pl.errors = pl.errors.length ? pl.errors : null
   //
-  return ret
+  return pl.ret
 }
 
 module.exports.version = VERSION

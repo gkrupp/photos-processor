@@ -61,23 +61,50 @@ function errorStacker (ref, stack, details = {}, defret = null) {
   }
 }
 
-function pipelineInit ({ version, data }) {
+function pipelineInit ({ version = 0, data = {} }) {
   const ret = {
-    errors: null,
+    errors: [],
     version: version,
-    data: {}
+    data: {},
+    convert: {}
   }
-  const pl = {
+  return {
     data,
-    result: ret.data,
     ctx: {},
-    errors: []
+    result: ret.data,
+    convert: ret.convert,
+    errors: ret.errors,
+    version: version,
+    ret
   }
-  return { ret, pl }
+}
+
+function pipeResultConverterCore (result, keys, cvrt) {
+  const key = keys[0]
+  if (keys.length === 1) {
+    result[key] = cvrt(result[key])
+  } else if (key in result) {
+    pipeResultConverterCore(result[key], keys.slice(1), cvrt)
+  }
+}
+
+function pipeResultConverter (result, convert) {
+  for (const key in convert) {
+    const keys = key.split('.')
+    let cvt = (v) => v
+    switch (convert[key]) {
+      case 'Date':
+        cvt = (v) => new Date(v)
+        break
+    }
+    pipeResultConverterCore(result, keys, cvt)
+  }
+  return result
 }
 
 module.exports = {
   dependencyScheduler,
   errorStacker,
-  pipelineInit
+  pipelineInit,
+  pipeResultConverter
 }

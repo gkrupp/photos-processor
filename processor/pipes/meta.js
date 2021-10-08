@@ -135,9 +135,11 @@ function postProcessing (pl) {
   const modified = pl.result?.exif?.ModifyDate || created
   if (created) {
     pl.result.created = new Date(created)
+    pl.convert.created = 'Date'
   }
   if (modified) {
     pl.result.modified = new Date(modified)
+    pl.convert.modified = 'Date'
   }
   // GPS
   const latitude = pl.result?.exif?.latitude || null
@@ -170,15 +172,15 @@ const PipeJPEG =
 // Execution
 
 module.exports = async function MetaProcessorPipe ({ data }) {
-  const { ret, pl } = pipelineInit({ version: VERSION, data })
+  const pl = pipelineInit({ version: VERSION, data })
   try {
     await PipeJPEG(pl)
   } catch (err) {
     errorStacker('$', pl.errors, data)
   }
-  ret.errors = pl.errors.length ? pl.errors : null
+  pl.ret.errors = pl.ret.errors.length ? pl.ret.errors : null
   //
-  return ret
+  return pl.ret
 }
 
 module.exports.version = VERSION

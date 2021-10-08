@@ -67,15 +67,15 @@ Context(downsampleCtx,
 // Execution
 
 module.exports = async function FeatureProcessorPipe ({ data }) {
-  const { ret, pl } = pipelineInit({ version: VERSION, data })
+  const pl = pipelineInit({ version: VERSION, data })
   try {
     await PipeJPEG(pl)
   } catch (err) {
     errorStacker('$', pl.errors, data)
   }
-  ret.errors = pl.errors.length ? pl.errors : null
+  pl.ret.errors = pl.ret.errors.length ? pl.ret.errors : null
   //
-  return ret
+  return pl.ret
 }
 
 module.exports.version = VERSION

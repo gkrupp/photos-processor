@@ -3,7 +3,7 @@ const pathlib = require('path')
 const QueueService = require('../../photos-common/services/QueueService')
 const config = require('../config')
 
-const { dependencyScheduler } = require('./utils')
+const { dependencyScheduler, pipeResultConverter } = require('./utils')
 
 let Photo = null
 
@@ -27,7 +27,6 @@ async function pipeScheduler (job, done) {
   const schedule = dependencyScheduler(PIPES, processed)
   data.__schedule = schedule
   // feed
-  await Photo.pushProcessingFlags(data.id, '@processing')
   await pipeFeeder(data)
   return done(null, data)
 }
@@ -46,6 +45,7 @@ async function pipeFeeder (data) {
 function pipeResultHandlerFactory (name) {
   return async function (job, res) {
     const { id, path } = job.data
+    res.data = pipeResultConverter(res.data, res.convert)
     console.log(name, id.substr(0, 16) + '..', res.errors)
     // flags
     await Photo.popProcessingFlags(id, `@processing/${name}`)
@@ -101,6 +101,7 @@ async function stop () {
 
 async function process (id, path, processed) {
   if (!id || !path) throw new Error('\'id\' or \'path\' is not defined for processing')
+  await Photo.pushProcessingFlags(id, '@processing')
   return await Photo.processorQueue.add(Photo.host, { id, path, processed })
 }
 
